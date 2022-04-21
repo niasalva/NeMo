@@ -23,20 +23,38 @@ from nemo_text_processing.text_normalization.normalize import Normalizer
 from tqdm import tqdm
 
 
+# full corpus.
+URLS_FULL = {
+    "Bernd_Ungerer": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Bernd_Ungerer.zip",
+    "Eva_K": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Eva_K.zip",
+    "Friedrich": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Friedrich.zip",
+    "Hokuspokus": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Hokuspokus.zip",
+    "Karlsson": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Karlsson.zip",
+    "others": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/others.zip",
+}
+URL_STATS_FULL = "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/datasetStatistic.zip"
+
+# the clean subset of the full corpus.
+URLS_CLEAN = {
+    "Bernd_Ungerer": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Bernd_Ungerer_Clean.zip",
+    "Eva_K": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Eva_K_Clean.zip",
+    "Friedrich": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Friedrich_Clean.zip",
+    "Hokuspokus": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Hokuspokus_Clean.zip",
+    "Karlsson": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Karlsson_Clean.zip",
+    "others": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/others.zip",
+}
+URL_STATS_CLEAN = (
+    "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/datasetStatisticClean.zip"
+)
+
+
 def get_args():
     parser = argparse.ArgumentParser(
-        description='Download HUI-Audio-Corpus-German and create manifests with predefined split'
+        description="Download HUI-Audio-Corpus-German and create manifests with predefined split. "
+                    "Please check details about the corpus in https://github.com/iisys-hof/HUI-Audio-Corpus-German."
     )
-
     parser.add_argument("--data-root", required=True, type=Path)
-    parser.add_argument(
-        "--speaker",
-        default="Karlsson",
-        choices=["Bernd_Ungerer", "Hokuspokus", "Friedrich", "Karlsson", "Eva_K"],
-        type=str,
-    )
     parser.add_argument("--set-type", default="clean", choices=["full", "clean"], type=str)
-
     parser.add_argument("--min-duration", default=0.1, type=float)
     parser.add_argument("--max-duration", default=15, type=float)
     parser.add_argument("--val-size", default=100, type=int)
@@ -47,35 +65,20 @@ def get_args():
         type=float,
         help="Seed for deterministic split of train/dev/test, NVIDIA's default is 100",
     )
+    parser.add_argument(
+        "--speaker",
+        default="Karlsson",
+        choices=["Bernd_Ungerer", "Hokuspokus", "Friedrich", "Karlsson", "Eva_K"],
+        type=str,
+    )
 
     args = parser.parse_args()
     return args
 
 
-URLS_FULL = {
-    'Bernd_Ungerer': "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Bernd_Ungerer.zip",
-    'Hokuspokus': "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Hokuspokus.zip",
-    'Friedrich': "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Friedrich.zip",
-    'Karlsson': "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Karlsson.zip",
-    'Eva_K': "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Eva_K.zip",
-}
-URL_STATS_FULL = "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/datasetStatistic.zip"
-
-URLS_CLEAN = {
-    'Bernd_Ungerer': "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Bernd_Ungerer_Clean.zip",
-    'Hokuspokus': "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Hokuspokus_Clean.zip",
-    'Friedrich': "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Friedrich_Clean.zip",
-    'Karlsson': "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Karlsson_Clean.zip",
-    'Eva_K': "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Eva_K_Clean.zip",
-}
-URL_STATS_CLEAN = (
-    "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/datasetStatisticClean.zip"
-)
-
-
 def __maybe_download_file(source_url, destination_path):
     if not destination_path.exists():
-        tmp_file_path = destination_path.with_suffix('.tmp')
+        tmp_file_path = destination_path.with_suffix(".tmp")
         urllib.request.urlretrieve(source_url, filename=str(tmp_file_path))
         tmp_file_path.rename(destination_path)
 
@@ -83,17 +86,34 @@ def __maybe_download_file(source_url, destination_path):
 def __extract_file(filepath, data_dir):
     try:
         shutil.unpack_archive(filepath, data_dir)
-    except Exception:
+    except RuntimeError:
         print(f"Error while extracting {filepath}. Already extracted?")
 
 
-def __process_data(dataset_path, stat_path, min_duration, max_duration, val_size, test_size, seed_for_ds_split):
+def __process_data(
+        speaker_id,
+        dataset_path,
+        stat_path,
+        min_duration,
+        max_duration,
+        val_size,
+        test_size,
+        seed_for_ds_split,
+):
     # Create normalizer
     text_normalizer = Normalizer(
-        lang="de", input_case="cased", overwrite_cache=True, cache_dir=str(dataset_path / "cache_dir"),
+        lang="de",
+        input_case="cased",
+        overwrite_cache=True,
+        cache_dir=str(dataset_path / "cache_dir"),
     )
-    text_normalizer_call_kwargs = {"punct_pre_process": True, "punct_post_process": True}
-    normalizer_call = lambda x: text_normalizer.normalize(x, **text_normalizer_call_kwargs)
+    text_normalizer_call_kwargs = {
+        "punct_pre_process": True,
+        "punct_post_process": True,
+    }
+
+    def normalizer_call(x):
+        return text_normalizer.normalize(x, **text_normalizer_call_kwargs)
 
     entries = []
     with open(stat_path) as f:
@@ -110,10 +130,11 @@ def __process_data(dataset_path, stat_path, min_duration, max_duration, val_size
             if min_duration <= duration <= max_duration:
                 normalized_text = normalizer_call(text)
                 entry = {
-                    'audio_filepath': str(audio_path),
-                    'duration': duration,
-                    'text': text,
-                    'normalized_text': normalized_text,
+                    "audio_filepath": str(audio_path),
+                    "duration": duration,
+                    "text": text,
+                    "normalized_text": normalized_text,
+                    "speaker": speaker_id,
                 }
                 entries.append(entry)
 
@@ -123,13 +144,13 @@ def __process_data(dataset_path, stat_path, min_duration, max_duration, val_size
     assert train_size > 0, "Not enough data for train, val and test"
 
     def save(p, data):
-        with open(p, 'w') as f:
+        with open(p, "w") as f:
             for d in data:
-                f.write(json.dumps(d) + '\n')
+                f.write(json.dumps(d) + "\n")
 
     save(dataset_path / "train_manifest.json", entries[:train_size])
-    save(dataset_path / "val_manifest.json", entries[train_size : train_size + val_size])
-    save(dataset_path / "test_manifest.json", entries[train_size + val_size :])
+    save(dataset_path / "val_manifest.json", entries[train_size: train_size + val_size])
+    save(dataset_path / "test_manifest.json", entries[train_size + val_size:])
 
 
 def main():
@@ -138,11 +159,10 @@ def main():
     speaker = args.speaker
     set_type = args.set_type
 
-    dataset_root = args.data_root / "HUI-Audio-Corpus-German"
-    dataset_root.mkdir(parents=True, exist_ok=True)
-
     speaker_data_source = URLS_FULL[speaker] if set_type == "full" else URLS_CLEAN[speaker]
     stats_source = URL_STATS_FULL if set_type == "full" else URL_STATS_CLEAN
+    dataset_root = f"{args.data_root}/HUI-Audio-Corpus-German"
+    dataset_root.mkdir(parents=True, exist_ok=True)
 
     zipped_speaker_data_path = dataset_root / Path(speaker_data_source).name
     zipped_stats_path = dataset_root / Path(stats_source).name
@@ -153,7 +173,8 @@ def main():
     __extract_file(zipped_speaker_data_path, dataset_root)
     __extract_file(zipped_stats_path, dataset_root)
 
-    # Rename unzipped speaker data folder which has `speaker` name to `Path(speaker_data_source).stem` to avoid name conflicts between full and clean
+    # Rename unzipped speaker data folder which has `speaker` name to `Path(speaker_data_source).stem`
+    # to avoid name conflicts between full and clean
     speaker_data_path = dataset_root / speaker
     speaker_data_path = speaker_data_path.rename(dataset_root / Path(speaker_data_source).stem)
 
