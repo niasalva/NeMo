@@ -150,8 +150,11 @@ def __process_data(
 
     random.Random(seed_for_ds_split).shuffle(entries)
     train_size = len(entries) - val_size - test_size
-    assert train_size > 0, "Not enough data for train, val and test"
-    logging.info(f"Preparing JSON split for speaker {speaker_id} is complete.")
+    if train_size <= 0:
+        logging.warning(f"Skipped speaker {speaker_id}. Not enough data for train, val and test")
+        return [], [], []
+    else:
+        logging.info(f"Preparing JSON split for speaker {speaker_id} is complete.")
 
     return entries[:train_size], entries[train_size : train_size + val_size], entries[train_size + val_size :]
 
