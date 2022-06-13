@@ -60,9 +60,8 @@ def get_args():
         "--num-workers",
         default=-1,
         type=int,
-        help="Specify the max number of concurrently text normalization Python workers processes. "
-        "If -1 all CPUs are used. If 1 no parallel computing is used. This argument is only "
-        "triggered when --normalize-text is called.",
+        help="Specify the max number of concurrently Python workers processes. "
+        "If -1 all CPUs are used. If 1 no parallel computing is used.",
     )
     parser.add_argument(
         "--normalize-text",
@@ -206,20 +205,22 @@ def main():
     else:
         raise ValueError(f"Unknown {set_type}. Please choose either clean or full.")
 
+    # download and unzip dataset stats
+    zipped_stats_path = dataset_root / Path(stats_source).name
+    __maybe_download_file(stats_source, zipped_stats_path)
+    __extract_file(zipped_stats_path, dataset_root)
+
     # download datasets
-    speakers = []
-    for speaker in data_source:
-        speakers.append(speaker)
-        speaker_data_source = data_source[speaker]
-        zipped_speaker_data_path = dataset_root / Path(speaker_data_source).name
-        zipped_stats_path = dataset_root / Path(stats_source).name
+    Parallel(n_jobs=args.num_workers)(
+        delayed(__maybe_download_file)(data_url, dataset_root / Path(data_url).name)
+        for _, data_url in data_source.items()
+    )
 
-        # TODO (xueyang): parallel downloading datasets to save time.
-        __maybe_download_file(speaker_data_source, zipped_speaker_data_path)
-        __maybe_download_file(stats_source, zipped_stats_path)
-
-        __extract_file(zipped_speaker_data_path, dataset_root)
-        __extract_file(zipped_stats_path, dataset_root)
+    # unzip datasets
+    Parallel(n_jobs=args.num_workers)(
+        delayed(__extract_file)(dataset_root / Path(data_url).name, dataset_root)
+        for _, data_url in data_source.items()
+    )
 
     # generate json files for train/val/test splits
     stats_path_root = dataset_root / Path(stats_source).stem / "speacker"
@@ -232,11 +233,7 @@ def main():
             num_speakers += 1
             speaker_to_id[speaker] = num_speakers
             speaker_stats_path = stats_path_root / speaker / "overview.csv"
-
-            speaker_data_source = data_source[speaker]
-            speaker_data_path = dataset_root / Path(speaker_data_source).stem
-            if speaker not in speakers:  # others
-                speaker_data_path = speaker_data_path / speaker
+            speaker_data_path = dataset_root / speaker
 
             train, val, test = __process_data(
                 speaker_data_path,
