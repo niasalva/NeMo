@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import argparse
-import csv
 import json
 import random
 import shutil
@@ -26,27 +25,25 @@ from tqdm import tqdm
 
 # full corpus.
 URLS_FULL = {
-    "Bernd_Ungerer": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Bernd_Ungerer.zip",
-    "Eva_K": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Eva_K.zip",
-    "Friedrich": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Friedrich.zip",
-    "Hokuspokus": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Hokuspokus.zip",
-    "Karlsson": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_full/Karlsson.zip",
-    "others": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/others.zip",
+    "Bernd_Ungerer": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_full/Bernd_Ungerer.zip",
+    "Eva_K": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_full/Eva_K.zip",
+    "Friedrich": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_full/Friedrich.zip",
+    "Hokuspokus": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_full/Hokuspokus.zip",
+    "Karlsson": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_full/Karlsson.zip",
+    "others": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_full/others.zip",
 }
-URL_STATS_FULL = "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/datasetStatistic.zip"
+URL_STATS_FULL = "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/datasetStatistic.zip"
 
 # the clean subset of the full corpus.
 URLS_CLEAN = {
-    "Bernd_Ungerer": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Bernd_Ungerer_Clean.zip",
-    "Eva_K": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Eva_K_Clean.zip",
-    "Friedrich": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Friedrich_Clean.zip",
-    "Hokuspokus": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Hokuspokus_Clean.zip",
-    "Karlsson": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/Karlsson_Clean.zip",
-    "others": "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/dataset_clean/others.zip",
+    "Bernd_Ungerer": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_clean/Bernd_Ungerer_Clean.zip",
+    "Eva_K": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_clean/Eva_K_Clean.zip",
+    "Friedrich": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_clean/Friedrich_Clean.zip",
+    "Hokuspokus": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_clean/Hokuspokus_Clean.zip",
+    "Karlsson": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_clean/Karlsson_Clean.zip",
+    "others": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_clean/others_Clean.zip",
 }
-URL_STATS_CLEAN = (
-    "https://opendata.iisys.de/systemintegration/Datasets/HUI-Audio-Corpus-German/datasetStatisticClean.zip"
-)
+URL_STATS_CLEAN = "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/datasetStatisticClean.zip"
 
 
 def get_args():
