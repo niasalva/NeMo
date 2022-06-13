@@ -248,7 +248,7 @@ def main():
             entries_val.extend(val)
             entries_test.extend(test)
 
-    # shuffle across multiple speakers
+    # shuffle in place across multiple speakers
     random.Random(args.seed_for_ds_split).shuffle(entries_train)
     random.Random(args.seed_for_ds_split).shuffle(entries_val)
     random.Random(args.seed_for_ds_split).shuffle(entries_test)
