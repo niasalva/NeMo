@@ -70,13 +70,13 @@ def get_args():
         help="Normalize original text and add a new entry 'normalized_text' to .json file if True.",
     )
     parser.add_argument(
-        "--val-num-uttrs-per-speaker",
+        "--val-num-utts-per-speaker",
         default=1,
         type=int,
         help="Specify the number of utterances for each speaker in val split. All speakers are covered.",
     )
     parser.add_argument(
-        "--test-num-utters-per-speaker",
+        "--test-num-utts-per-speaker",
         default=1,
         type=int,
         help="Specify the number of utterances for each speaker in test split. All speakers are covered.",
@@ -241,8 +241,8 @@ def main():
                 num_speakers,
                 args.min_duration,
                 args.max_duration,
-                args.val_num_uttrs_per_speaker,
-                args.test_num_uttrs_per_speaker,
+                args.val_num_utts_per_speaker,
+                args.test_num_utts_per_speaker,
                 args.seed_for_ds_split,
             )
 
