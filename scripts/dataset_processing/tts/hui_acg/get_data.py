@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import argparse
+import csv
 import json
 import random
 import shutil
@@ -96,12 +97,16 @@ def get_args():
 
 def __maybe_download_file(source_url, destination_path):
     if not destination_path.exists():
+        print(f"Downloading data: {source_url} --> {destination_path}")
         tmp_file_path = destination_path.with_suffix(".tmp")
         urllib.request.urlretrieve(source_url, filename=tmp_file_path)
         tmp_file_path.rename(destination_path)
+    else:
+        print(f"Skipped downloading data because it exists: {destination_path}")
 
 
 def __extract_file(filepath, data_dir):
+    print(f"Unzipping data: {filepath} --> {data_dir}")
     try:
         shutil.unpack_archive(filepath, data_dir)
     except RuntimeError:
@@ -109,6 +114,7 @@ def __extract_file(filepath, data_dir):
 
 
 def __save_json(json_file, dict_list):
+    print(f"Saving json split to {json_file}.")
     with open(json_file, "w") as f:
         for d in dict_list:
             f.write(json.dumps(d) + "\n")
@@ -124,6 +130,7 @@ def __process_data(
     test_size,
     seed_for_ds_split,
 ):
+    print(f"Preparing JSON split for speaker {speaker_id}.")
     entries = []
     with open(stat_path, 'r') as f:
         # Let's skip the header
@@ -148,6 +155,7 @@ def __process_data(
     random.Random(seed_for_ds_split).shuffle(entries)
     train_size = len(entries) - val_size - test_size
     assert train_size > 0, "Not enough data for train, val and test"
+    print(f"Preparing JSON split for speaker {speaker_id} is complete.")
 
     return entries[:train_size], entries[train_size : train_size + val_size], entries[train_size + val_size :]
 
@@ -172,6 +180,7 @@ def __text_normalization(json_file, num_workers=-1):
         line_dict.update({"normalized_text": normalized_text})
         return line_dict
 
+    print(f"Normalizing text for {json_file}.")
     with open(json_file, 'r', encoding='utf-8') as fjson:
         lines = fjson.readlines()
         dict_list = Parallel(n_jobs=num_workers)(
@@ -182,7 +191,7 @@ def __text_normalization(json_file, num_workers=-1):
     with open(json_file_text_normed, 'w', encoding="utf-8") as fjson_norm:
         for dct in dict_list:
             fjson_norm.write(json.dumps(dct) + "\n")
-    print(f"Text normalization is complete: {json_file} --> {json_file_text_normed}")
+    print(f"Normalizing text is complete: {json_file} --> {json_file_text_normed}")
 
 
 def main():
@@ -210,6 +219,7 @@ def main():
         zipped_speaker_data_path = dataset_root / Path(speaker_data_source).name
         zipped_stats_path = dataset_root / Path(stats_source).name
 
+        # TODO (xueyang): parallel downloading datasets to save time.
         __maybe_download_file(speaker_data_source, zipped_speaker_data_path)
         __maybe_download_file(stats_source, zipped_stats_path)
 
@@ -252,6 +262,13 @@ def main():
     random.Random(args.seed_for_ds_split).shuffle(entries_train)
     random.Random(args.seed_for_ds_split).shuffle(entries_val)
     random.Random(args.seed_for_ds_split).shuffle(entries_test)
+
+    # save speaker to id.
+    spk2id_file_path = dataset_root / "spk2id.csv"
+    with open(spk2id_file_path, 'w') as fspk:
+        fspk.write(f"speaker_name,speaker_id\n")
+        for key, val in speaker_to_id.items():
+            fspk.write(f"{key},{val}\n")
 
     # save json splits.
     train_json = dataset_root / "train_manifest.json"
