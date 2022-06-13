@@ -104,10 +104,8 @@ def __maybe_download_file(source_url, destination_path):
 
 def __extract_file(filepath, data_dir):
     print(f"Unzipping data: {filepath} --> {data_dir}")
-    try:
-        shutil.unpack_archive(filepath, data_dir)
-    except RuntimeError:
-        print(f"Error while extracting {filepath}. Already extracted?")
+    shutil.unpack_archive(filepath, data_dir)
+    print(f"Unzipping data is complete.")
 
 
 def __save_json(json_file, dict_list):
