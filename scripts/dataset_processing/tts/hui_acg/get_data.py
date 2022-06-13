@@ -23,6 +23,8 @@ from joblib import Parallel, delayed
 from nemo_text_processing.text_normalization.normalize import Normalizer
 from tqdm import tqdm
 
+from nemo.utils import logging
+
 # full corpus.
 URLS_FULL = {
     "Bernd_Ungerer": "https://opendata.iisys.de/opendata/Datasets/HUI-Audio-Corpus-German/dataset_full/Bernd_Ungerer.zip",
@@ -93,22 +95,22 @@ def get_args():
 
 def __maybe_download_file(source_url, destination_path):
     if not destination_path.exists():
-        print(f"Downloading data: {source_url} --> {destination_path}")
+        logging.info(f"Downloading data: {source_url} --> {destination_path}")
         tmp_file_path = destination_path.with_suffix(".tmp")
         urllib.request.urlretrieve(source_url, filename=tmp_file_path)
         tmp_file_path.rename(destination_path)
     else:
-        print(f"Skipped downloading data because it exists: {destination_path}")
+        logging.info(f"Skipped downloading data because it exists: {destination_path}")
 
 
 def __extract_file(filepath, data_dir):
-    print(f"Unzipping data: {filepath} --> {data_dir}")
+    logging.info(f"Unzipping data: {filepath} --> {data_dir}")
     shutil.unpack_archive(filepath, data_dir)
-    print(f"Unzipping data is complete.")
+    logging.info(f"Unzipping data is complete.")
 
 
 def __save_json(json_file, dict_list):
-    print(f"Saving json split to {json_file}.")
+    logging.info(f"Saving json split to {json_file}.")
     with open(json_file, "w") as f:
         for d in dict_list:
             f.write(json.dumps(d) + "\n")
@@ -124,7 +126,7 @@ def __process_data(
     test_size,
     seed_for_ds_split,
 ):
-    print(f"Preparing JSON split for speaker {speaker_id}.")
+    logging.info(f"Preparing JSON split for speaker {speaker_id}.")
     entries = []
     with open(stat_path, 'r') as f:
         # Let's skip the header
@@ -149,7 +151,7 @@ def __process_data(
     random.Random(seed_for_ds_split).shuffle(entries)
     train_size = len(entries) - val_size - test_size
     assert train_size > 0, "Not enough data for train, val and test"
-    print(f"Preparing JSON split for speaker {speaker_id} is complete.")
+    logging.info(f"Preparing JSON split for speaker {speaker_id} is complete.")
 
     return entries[:train_size], entries[train_size : train_size + val_size], entries[train_size + val_size :]
 
@@ -174,7 +176,7 @@ def __text_normalization(json_file, num_workers=-1):
         line_dict.update({"normalized_text": normalized_text})
         return line_dict
 
-    print(f"Normalizing text for {json_file}.")
+    logging.info(f"Normalizing text for {json_file}.")
     with open(json_file, 'r', encoding='utf-8') as fjson:
         lines = fjson.readlines()
         dict_list = Parallel(n_jobs=num_workers)(
@@ -185,7 +187,7 @@ def __text_normalization(json_file, num_workers=-1):
     with open(json_file_text_normed, 'w', encoding="utf-8") as fjson_norm:
         for dct in dict_list:
             fjson_norm.write(json.dumps(dct) + "\n")
-    print(f"Normalizing text is complete: {json_file} --> {json_file_text_normed}")
+    logging.info(f"Normalizing text is complete: {json_file} --> {json_file_text_normed}")
 
 
 def main():
@@ -235,6 +237,7 @@ def main():
             speaker_stats_path = stats_path_root / speaker / "overview.csv"
             speaker_data_path = dataset_root / speaker
 
+            logging.info(f"Processing Speaker: {speaker}")
             train, val, test = __process_data(
                 speaker_data_path,
                 speaker_stats_path,
