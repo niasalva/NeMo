@@ -311,7 +311,7 @@ def main():
     __save_json(val_json, entries_val)
     __save_json(test_json, entries_test)
 
-    # normalize text if requested. New json file, train_manifest_text_normalized.json, will be generated.
+    # normalize text if requested. New json file, train_manifest_text_normed.json, will be generated.
     if args.normalize_text:
         __text_normalization(train_json, args.num_workers)
         __text_normalization(val_json, args.num_workers)
