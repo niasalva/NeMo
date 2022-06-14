@@ -211,7 +211,7 @@ def __text_normalization(json_file, num_workers=-1):
             delayed(add_normalized_text)(json.loads(line)) for line in tqdm(lines)
         )
 
-    json_file_text_normed = json_file.parent / f"{json_file.stem}_text_normed.{json_file.suffix}"
+    json_file_text_normed = json_file.parent / f"{json_file.stem}_text_normed{json_file.suffix}"
     with open(json_file_text_normed, 'w', encoding="utf-8") as fjson_norm:
         for dct in dict_list:
             fjson_norm.write(json.dumps(dct) + "\n")
