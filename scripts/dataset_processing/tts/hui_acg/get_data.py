@@ -205,6 +205,8 @@ def __text_normalization(json_file, num_workers=-1):
     logging.info(f"Normalizing text for {json_file}.")
     with open(json_file, 'r', encoding='utf-8') as fjson:
         lines = fjson.readlines()
+        # Note: you need to verify which backend works well on your cluster.
+        # backend="loky" is fine on multi-core Ubuntu OS; backend="threading" on Slurm.
         dict_list = Parallel(n_jobs=num_workers)(
             delayed(add_normalized_text)(json.loads(line)) for line in tqdm(lines)
         )
@@ -239,6 +241,8 @@ def main():
     __extract_file(zipped_stats_path, dataset_root)
 
     # download datasets
+    # Note: you need to verify which backend works well on your cluster.
+    # backend="loky" is fine on multi-core Ubuntu OS; backend="threading" on Slurm.
     Parallel(n_jobs=args.num_workers)(
         delayed(__maybe_download_file)(data_url, dataset_root / Path(data_url).name)
         for _, data_url in data_source.items()
