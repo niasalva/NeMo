@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import argparse
+import csv
 import json
 import random
 import shutil
@@ -110,7 +111,7 @@ def __extract_file(filepath, data_dir):
 
 
 def __save_json(json_file, dict_list):
-    logging.info(f"Saving json split to {json_file}.")
+    logging.info(f"Saving JSON split to {json_file}.")
     with open(json_file, "w") as f:
         for d in dict_list:
             f.write(json.dumps(d) + "\n")
@@ -118,7 +119,7 @@ def __save_json(json_file, dict_list):
 
 def __process_data(
     dataset_path,
-    stat_path,
+    stat_path_root,
     speaker_id,
     min_duration,
     max_duration,
@@ -127,11 +128,20 @@ def __process_data(
     seed_for_ds_split,
 ):
     logging.info(f"Preparing JSON split for speaker {speaker_id}.")
+    # parse statistic.txt
+    stat_path = stat_path_root / "statistic.txt"
+    with open(stat_path, 'r') as fstat:
+        lines = fstat.readlines()
+        num_utts = int(lines[4].strip().split()[-1])
+        hours = round(float(lines[9].strip().split()[-1]), 2)
+
+    # parse overview.csv to generate JSON splits.
+    overview_path = stat_path_root / "overview.csv"
     entries = []
-    with open(stat_path, 'r') as f:
+    with open(overview_path, 'r') as foverview:
         # Let's skip the header
-        f.readline()
-        for line in tqdm(f):
+        foverview.readline()
+        for line in tqdm(foverview):
             file_stem, duration, *_, text = line.strip().split("|")
             duration = float(duration)
 
@@ -151,12 +161,25 @@ def __process_data(
     random.Random(seed_for_ds_split).shuffle(entries)
     train_size = len(entries) - val_size - test_size
     if train_size <= 0:
-        logging.warning(f"Skipped speaker {speaker_id}. Not enough data for train, val and test")
-        return [], [], []
+        logging.warning(f"Skipped speaker {speaker_id}. Not enough data for train, val and test.")
+        train, val, test, is_skipped = [], [], [], True
     else:
         logging.info(f"Preparing JSON split for speaker {speaker_id} is complete.")
+        train, val, test, is_skipped = (
+            entries[:train_size],
+            entries[train_size : train_size + val_size],
+            entries[train_size + val_size :],
+            False,
+        )
 
-    return entries[:train_size], entries[train_size : train_size + val_size], entries[train_size + val_size :]
+    return {
+        "train": train,
+        "val": val,
+        "test": test,
+        "is_skipped": is_skipped,
+        "hours": hours,
+        "num_utts": num_utts,
+    }
 
 
 def __text_normalization(json_file, num_workers=-1):
@@ -230,20 +253,19 @@ def main():
     # generate json files for train/val/test splits
     stats_path_root = dataset_root / Path(stats_source).stem / "speacker"
     entries_train, entries_val, entries_test = [], [], []
-    speaker_to_id = {}
+    speaker_entries = []
     num_speakers = 0
     for child in stats_path_root.iterdir():
         if child.is_dir():
             speaker = child.name
             num_speakers += 1
-            speaker_to_id[speaker] = num_speakers
-            speaker_stats_path = stats_path_root / speaker / "overview.csv"
+            speaker_stats_root = stats_path_root / speaker
             speaker_data_path = dataset_root / speaker
 
             logging.info(f"Processing Speaker: {speaker}")
-            train, val, test = __process_data(
+            results = __process_data(
                 speaker_data_path,
-                speaker_stats_path,
+                speaker_stats_root,
                 num_speakers,
                 args.min_duration,
                 args.max_duration,
@@ -252,21 +274,32 @@ def main():
                 args.seed_for_ds_split,
             )
 
-            entries_train.extend(train)
-            entries_val.extend(val)
-            entries_test.extend(test)
+            entries_train.extend(results["train"])
+            entries_val.extend(results["val"])
+            entries_test.extend(results["test"])
+
+            speaker_entry = {
+                "speaker_name": speaker,
+                "speaker_id": num_speakers,
+                "hours": results["hours"],
+                "num_utts": results["num_utts"],
+                "is_skipped": results["is_skipped"],
+            }
+            speaker_entries.append(speaker_entry)
 
     # shuffle in place across multiple speakers
     random.Random(args.seed_for_ds_split).shuffle(entries_train)
     random.Random(args.seed_for_ds_split).shuffle(entries_val)
     random.Random(args.seed_for_ds_split).shuffle(entries_test)
 
-    # save speaker to id.
+    # save speaker stats.
     spk2id_file_path = dataset_root / "spk2id.csv"
     with open(spk2id_file_path, 'w') as fspk:
-        fspk.write(f"speaker_name,speaker_id\n")
-        for key, val in speaker_to_id.items():
-            fspk.write(f"{key},{val}\n")
+        fieldnames = ["speaker_name", "speaker_id", "hours", "num_utts", "is_skipped"]
+        writer = csv.DictWriter(fspk, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(speaker_entries)
+    logging.info(f"Saving Speaker to ID mapping to {spk2id_file_path}.")
 
     # save json splits.
     train_json = dataset_root / "train_manifest.json"
