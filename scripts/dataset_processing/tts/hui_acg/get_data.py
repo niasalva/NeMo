@@ -107,7 +107,7 @@ def __maybe_download_file(source_url, destination_path):
 def __extract_file(filepath, data_dir):
     logging.info(f"Unzipping data: {filepath} --> {data_dir}")
     shutil.unpack_archive(filepath, data_dir)
-    logging.info(f"Unzipping data is complete.")
+    logging.info(f"Unzipping data is complete: {filepath}.")
 
 
 def __save_json(json_file, dict_list):
@@ -249,6 +249,8 @@ def main():
     )
 
     # unzip datasets
+    # Note: you need to verify which backend works well on your cluster.
+    # backend="loky" is fine on multi-core Ubuntu OS; backend="threading" on Slurm.
     Parallel(n_jobs=args.num_workers)(
         delayed(__extract_file)(dataset_root / Path(data_url).name, dataset_root)
         for _, data_url in data_source.items()
