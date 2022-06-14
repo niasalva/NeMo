@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import argparse
-import csv
 import json
 import random
 import shutil
 import urllib.request
 from pathlib import Path
 
+import pandas as pd
 from joblib import Parallel, delayed
 from nemo_text_processing.text_normalization.normalize import Normalizer
 from tqdm import tqdm
@@ -133,7 +133,7 @@ def __process_data(
     with open(stat_path, 'r') as fstat:
         lines = fstat.readlines()
         num_utts = int(lines[4].strip().split()[-1])
-        hours = round(float(lines[9].strip().split()[-1]), 2)
+        hours = round(float(lines[9].strip().split()[-1]) / 3600.0, 2)
 
     # parse overview.csv to generate JSON splits.
     overview_path = stat_path_root / "overview.csv"
@@ -206,7 +206,7 @@ def __text_normalization(json_file, num_workers=-1):
     with open(json_file, 'r', encoding='utf-8') as fjson:
         lines = fjson.readlines()
         dict_list = Parallel(n_jobs=num_workers)(
-            delayed(add_normalized_text)(json.loads(line) for line in tqdm(lines))
+            delayed(add_normalized_text)(json.loads(line)) for line in tqdm(lines)
         )
 
     json_file_text_normed = json_file.parent / f"{json_file.stem}_text_normed.{json_file.suffix}"
@@ -293,12 +293,10 @@ def main():
     random.Random(args.seed_for_ds_split).shuffle(entries_test)
 
     # save speaker stats.
+    df = pd.DataFrame.from_records(speaker_entries)
+    df.sort_values(by="hours", ascending=False, inplace=True)
     spk2id_file_path = dataset_root / "spk2id.csv"
-    with open(spk2id_file_path, 'w') as fspk:
-        fieldnames = ["speaker_name", "speaker_id", "hours", "num_utts", "is_skipped"]
-        writer = csv.DictWriter(fspk, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(speaker_entries)
+    df.to_csv(spk2id_file_path, index=False)
     logging.info(f"Saving Speaker to ID mapping to {spk2id_file_path}.")
 
     # save json splits.
