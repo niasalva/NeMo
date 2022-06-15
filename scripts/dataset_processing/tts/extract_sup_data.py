@@ -24,12 +24,14 @@ def preprocess_ds_for_fastpitch_align(dataloader):
     pitch_list = []
     for batch in tqdm(dataloader, total=len(dataloader)):
         audios, audio_lengths, tokens, tokens_lengths, align_prior_matrices, pitches, pitches_lengths = batch
-
         pitch = pitches.squeeze(0)
         pitch_list.append(pitch[pitch != 0])
 
     pitch_tensor = torch.cat(pitch_list)
-    print(f"PITCH_MEAN, PITCH_STD = {pitch_tensor.mean().item()}, {pitch_tensor.std().item()}")
+    pitch_mean, pitch_std = pitch_tensor.mean().item(), pitch_tensor.std().item()
+    pitch_min, pitch_max = pitch_tensor.min().item(), pitch_tensor.max().item()
+    print(f"PITCH_MEAN={pitch_mean}, PITCH_STD={pitch_std}")
+    print(f"PITCH_MIN={pitch_min}, PITCH_MAX={pitch_max}")
 
 
 def preprocess_ds_for_mixer_tts_x(dataloader):
@@ -50,7 +52,10 @@ def preprocess_ds_for_mixer_tts_x(dataloader):
         pitch_list.append(pitch[pitch != 0])
 
     pitch_tensor = torch.cat(pitch_list)
-    print(f"PITCH_MEAN, PITCH_STD = {pitch_tensor.mean().item()}, {pitch_tensor.std().item()}")
+    pitch_mean, pitch_std = pitch_tensor.mean().item(), pitch_tensor.std().item()
+    pitch_min, pitch_max = pitch_tensor.min().item(), pitch_tensor.max().item()
+    print(f"PITCH_MEAN={pitch_mean}, PITCH_STD={pitch_std}")
+    print(f"PITCH_MIN={pitch_min}, PITCH_MAX={pitch_max}")
 
 
 CFG_NAME2FUNC = {
