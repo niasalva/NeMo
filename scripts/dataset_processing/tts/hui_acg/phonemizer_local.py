@@ -15,8 +15,8 @@ import argparse
 import json
 from pathlib import Path
 
-import tqdm
 from phonemizer.backend import EspeakBackend
+from tqdm import tqdm
 
 from nemo.utils import logging
 
