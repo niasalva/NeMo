@@ -43,3 +43,6 @@ dataset:
     apostrophe: true
     pad_with_space: true
     phonemes: true
+
+dataloader_params:
+  num_workers: 12
