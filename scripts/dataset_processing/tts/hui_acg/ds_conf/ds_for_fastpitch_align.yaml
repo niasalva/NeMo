@@ -1,20 +1,20 @@
-name: ds_for_fastpitch_align
+name: "ds_for_fastpitch_align"
 
-train_dataset: "train_manifest_text_normed_phonemes.json"
+manifest_filepath: "train_manifest_text_normed_phonemes.json"
 sup_data_path: "sup_data_phonemes"
 sup_data_types: [ "align_prior_matrix", "pitch" ]
 whitelist_path: "nemo_text_processing/text_normalization/de/data/whitelist.tsv"
 
 dataset:
   _target_: nemo.collections.tts.torch.data.TTSDataset
-  manifest_filepath: ${train_dataset}
+  manifest_filepath: ${manifest_filepath}
   sample_rate: 44100
   sup_data_path: ${sup_data_path}
   sup_data_types: ${sup_data_types}
   n_fft: 2048
   win_length: 2048
   hop_length: 512
-  window: hann
+  window: "hann"
   n_mels: 80
   lowfreq: 0
   highfreq: null
