@@ -5,12 +5,17 @@ such idea. Before running, please install dependency on your local machine as sh
 https://github.com/NVIDIA/NeMo/blob/main/tutorials/tts/Fastpitch_Training_GermanTTS.ipynb
 
 $ pip install phonemizer && apt-get install espeak-ng
+
+Usage for example:
+$ python scripts/dataset_processing/tts/hui_acg/phonemizer_local.py \
+    --json-manifests ~/tmp/val_manifest_text_normed.json ~/tmp/test_manifest_text_normed.json
 """
 
 import argparse
 import json
 from pathlib import Path
 
+import tqdm
 from phonemizer.backend import EspeakBackend
 
 from nemo.utils import logging
@@ -40,7 +45,7 @@ def main():
         logging.info(f"Phonemizing: {manifest}")
         entries = []
         with open(manifest, 'r') as fjson:
-            for line in fjson:
+            for line in tqdm(fjson):
                 # grapheme
                 grapheme_dct = json.loads(line.strip())
                 grapheme_dct.update({"is_phoneme": 0})
