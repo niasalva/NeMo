@@ -8,6 +8,7 @@ $ pip install phonemizer && apt-get install espeak-ng
 
 Usage for example:
 $ python scripts/dataset_processing/tts/hui_acg/phonemizer_local.py \
+    --preserve-punctuation \
     --json-manifests ~/tmp/val_manifest_text_normed.json ~/tmp/test_manifest_text_normed.json
 """
 
@@ -20,8 +21,6 @@ from tqdm import tqdm
 
 from nemo.utils import logging
 
-backend = EspeakBackend('de')
-
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -33,6 +32,12 @@ def get_args():
         type=Path,
         help="Specify a full path of a JSON manifest. You could add multiple manifest.",
     )
+    parser.add_argument(
+        "--preserve-punctuation",
+        default=False,
+        action='store_true',
+        help="Preserve punctuations if True when converting char into phonemes.",
+    )
     args = parser.parse_args()
     return args
 
@@ -40,7 +45,8 @@ def get_args():
 def main():
     args = get_args()
     input_manifest_filepaths = args.json_manifests
-
+    preserve_punctuation = args.preserve_punctuation
+    backend = EspeakBackend(language='de', preserve_punctuation=preserve_punctuation)
     for manifest in input_manifest_filepaths:
         logging.info(f"Phonemizing: {manifest}")
         entries = []
