@@ -46,7 +46,9 @@ def main():
     args = get_args()
     input_manifest_filepaths = args.json_manifests
     preserve_punctuation = args.preserve_punctuation
+    # TODO (xueyang): consider with_stress=True and add stress symbols into charset of tokenizer.
     backend = EspeakBackend(language='de', preserve_punctuation=preserve_punctuation)
+
     for manifest in input_manifest_filepaths:
         logging.info(f"Phonemizing: {manifest}")
         entries = []
@@ -57,7 +59,8 @@ def main():
                 grapheme_dct.update({"is_phoneme": 0})
                 # phoneme
                 phoneme_dct = grapheme_dct.copy()
-                phonemes = backend.phonemize([grapheme_dct["normalized_text"]])
+                # TODO (xueyang): add a separator.Separator(phone="_") to distinguish phone or word boundaries.
+                phonemes = backend.phonemize([grapheme_dct["normalized_text"]], strip=True)
                 phoneme_dct["normalized_text"] = phonemes[0]
                 phoneme_dct["is_phoneme"] = 1
 
