@@ -35,7 +35,7 @@ model:
   learn_alignment: true
   bin_loss_warmup_epochs: 100
 
-  n_speakers: 110  # change to the number of speakers in your dataset.
+  n_speakers: 119  # change to the number of speakers in your dataset. Make sure it is at least the largest speaker_id + 1
   max_token_duration: 75
   symbols_embedding_dim: 384
   pitch_embedding_kernel_size: 3
