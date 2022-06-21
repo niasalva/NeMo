@@ -53,7 +53,7 @@ def get_args():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="Download HUI-Audio-Corpus-German and create manifests with predefined split. "
-        "Please check details about the corpus in https://github.com/iisys-hof/HUI-Audio-Corpus-German.",
+                    "Please check details about the corpus in https://github.com/iisys-hof/HUI-Audio-Corpus-German.",
     )
     parser.add_argument("--data-root", required=True, type=Path)
     parser.add_argument("--set-type", default="clean", choices=["full", "clean"], type=str)
@@ -64,7 +64,7 @@ def get_args():
         default=-1,
         type=int,
         help="Specify the max number of concurrently Python workers processes. "
-        "If -1 all CPUs are used. If 1 no parallel computing is used.",
+             "If -1 all CPUs are used. If 1 no parallel computing is used.",
     )
     parser.add_argument(
         "--normalize-text",
@@ -118,14 +118,7 @@ def __save_json(json_file, dict_list):
 
 
 def __process_data(
-    dataset_path,
-    stat_path_root,
-    speaker_id,
-    min_duration,
-    max_duration,
-    val_size,
-    test_size,
-    seed_for_ds_split,
+        dataset_path, stat_path_root, speaker_id, min_duration, max_duration, val_size, test_size, seed_for_ds_split,
 ):
     logging.info(f"Preparing JSON split for speaker {speaker_id}.")
     # parse statistic.txt
@@ -167,8 +160,8 @@ def __process_data(
         logging.info(f"Preparing JSON split for speaker {speaker_id} is complete.")
         train, val, test, is_skipped = (
             entries[:train_size],
-            entries[train_size : train_size + val_size],
-            entries[train_size + val_size :],
+            entries[train_size: train_size + val_size],
+            entries[train_size + val_size:],
             False,
         )
 
@@ -188,10 +181,7 @@ def __text_normalization(json_file, num_workers=-1):
         "punct_post_process": True,
     }
     text_normalizer = Normalizer(
-        lang="de",
-        input_case="cased",
-        overwrite_cache=True,
-        cache_dir=str(json_file.parent / "cache_dir"),
+        lang="de", input_case="cased", overwrite_cache=True, cache_dir=str(json_file.parent / "cache_dir"),
     )
 
     def normalizer_call(x):
