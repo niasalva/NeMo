@@ -7,7 +7,7 @@ https://github.com/NVIDIA/NeMo/blob/main/tutorials/tts/Fastpitch_Training_German
 $ pip install phonemizer && apt-get install espeak-ng
 
 Usage for example:
-$ python scripts/dataset_processing/tts/hui_acg/phonemizer_local.py \
+$ python scripts/dataset_processing/tts/hui_acg/phonemizer.py \
     --preserve-punctuation \
     --json-manifests ~/tmp/val_manifest_text_normed.json ~/tmp/test_manifest_text_normed.json
 """
