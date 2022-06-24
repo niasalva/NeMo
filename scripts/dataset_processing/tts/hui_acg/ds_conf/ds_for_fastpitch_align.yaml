@@ -1,7 +1,7 @@
 name: "ds_for_fastpitch_align"
 
-manifest_filepath: "train_manifest_text_normed_phonemes.json"
-sup_data_path: "sup_data_phonemes"
+manifest_filepath: ???
+sup_data_path: ???
 sup_data_types: [ "align_prior_matrix", "pitch" ]
 whitelist_path: "nemo_text_processing/text_normalization/de/data/whitelist.tsv"
 
